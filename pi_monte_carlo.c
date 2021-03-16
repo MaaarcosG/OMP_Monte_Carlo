@@ -64,19 +64,25 @@ long long int Count_hits(long long int number_of_tosses, int thread_count) {
    long long int hits = 0;
    float x,y;
    unsigned seed = 1, xx;
+   /* counter */
+   int i;
    /* add schedule static*/
-   xx = my_rand(&seed);
-   #pragma omp parallel for num_threads(thread_count) reduction(+: hits) schedule(static, 1)
-   for(int i=0; i<number_of_tosses; i++){
-        /*
-        x = (((float)rand()/(float)(RAND_MAX)) * 2) - 1;
-        y = (((float)rand()/(float)(RAND_MAX)) * 2) - 1;
+   /* schedule(static, 1)*/
+   #pragma omp parallel num_threads(thread_count) shared(seed, xx) private(i) reduction(+: hits)
+   {
+      xx = my_rand(&seed);
+      #pragma omp for
+      for (i = 0; i < number_of_tosses; i++) {
+         /*
+            x = (((float)rand()/(float)(RAND_MAX)) * 2) - 1;
+            y = (((float)rand()/(float)(RAND_MAX)) * 2) - 1;
         */
-        x = my_drand(&xx);
-        y = my_drand(&xx);
-        if (isAHit(x,y) <= 1){
+         y = my_drand(&xx);
+         x = my_drand(&xx);
+         if(isAHit(x,y) <= 1) {
             hits++;
-        }
+         }
+      }
    }
    return hits;
 
